@@ -1,0 +1,3 @@
+module.exports = 
+{data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Quota async="false" continueOnError="false" enabled="true" name="Quota-1" type="rollingwindow"><DisplayName>Quota-1</DisplayName><Allow  count="20"/><Interval>1</Interval><Distributed>true</Distributed><Synchronous>true</Synchronous><TimeUnit>hour</TimeUnit></Quota>'};module.exports = 
+{data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Quota async="false" continueOnError="false" enabled="true" name="Quota-1" type="rollingwindow"><DisplayName>Quota-1</DisplayName><Allow  count="20"/><Interval>1</Interval><Distributed>true</Distributed><Synchronous>true</Synchronous><TimeUnit>hour</TimeUnit></Quota>'};

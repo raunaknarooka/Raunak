@@ -1,0 +1,1 @@
+module.exports = {data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VerifyAPIKey async="false" continueOnError="false" enabled="true" name="Verify-API-Key-1"><DisplayName>Verify API Key-1</DisplayName><Properties/><APIKey ref="request.header.apikey"/> </VerifyAPIKey>'}

@@ -1,0 +1,31 @@
+{
+  "name": "proxypoc",
+  "version": "1.0.0",
+  "description": "Dependencies for the proxyPOC program to run",
+  "main": "app.js",
+  "dependencies": {
+    "xlsx": "^0.11.10"
+  },
+"repository" : { 
+   "type" : "git",
+   "url" : "https://github.com/npm/npm.git"
+ },
+  "devDependencies": {
+    "xlsx": "0.11.10",
+    "fs-extra": "*",
+    "apigeetool":"*",
+"promise":"*",
+"pretty-data":"*",
+"xml2js":"*",
+"xlsx-writestream":"*"
+
+
+
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
+
