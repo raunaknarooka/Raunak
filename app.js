@@ -4,10 +4,12 @@ var apigeetool = require('apigeetool')
 var sdk = apigeetool.getPromiseSDK()
 var pd = require('pretty-data').pd;
 var fsExtra=require('fs-extra');
+var extract = require('extract-zip')
 
 var properties = require('./properties.js');
 var apiKeySecurity = require('./apikeySecurity.js');
 var quota = require('./quota.js');
+var deployProxy = require('./deploy.js');
 /*Read the excel sheet*/
 var workbook = XLSX.readFile('test.xlsx');
 var first_sheet_name = workbook.SheetNames[0];
@@ -46,48 +48,43 @@ if (!fs.existsSync(policy)){
         environments: properties.environments,
         
     }
-    var stringOfProxies ;
+    var stringOfProxies = "";
     var requestXml = '';
     var insertOptions = '';
-    var productSet = new Set();
-    var proxyCollection = [];
+   
     uploader(0);
  
 /*run a recursive function for each target url*/
 function uploader(i) {
   /*Create required proxy files*/
-  if(i === data.length) {
-    proxyCollection.push(stringOfProxies);
-  }
+  opts['api'] = data[i].Name;
+  sdk.listDeployments(opts).then((result)=> {
+      console.log(result);
+      if(result.deployments[0].revision >1) {
+          opts['revision'] = result.deployments[0].revision;
+          sdk.fetchProxy(opts).then((result) => {
+              
+            extract('./'+ data[i].Name +'.zip', {dir: 'C:/proxyProject/Raunak/'+data[i].Name}, function (err) {
+                // extraction is complete. make sure to handle the err
+               fsExtra.copySync('C:/proxyProject/Raunak/'+data[i].Name+'/apiproxy','./apiproxy');
+                delete opts['revision'];
+                delete opts['api'];
+               })
+          
+          })
+      }
+  })
   if(i < data.length) {
-      return new Promise((resolve, reject) => {
-
-     
-     var oldSize = Number(productSet.size);
-     productSet.add(data[i].Product);
-     console.log(productSet);
-     var newSize = Number(productSet.size);
-     if(newSize-oldSize === 1)  {
-        proxyCollection.push(stringOfProxies);
-         console.log(proxyCollection);
-         stringOfProxies = '';
-
-     } 
-     
      requestXml = '<Request></Request>';
-     
+    
      insertOptions = '';
       if(data.length === 1) {
        stringOfProxies= data[i].Name
-       resolve();
       } else {
           stringOfProxies = stringOfProxies + ',' + data[i].Name;
-          resolve();
-        
       }
-    }).then(() => {
+      
 
-  
       
 return new Promise((resolve, reject) => {
 
@@ -121,75 +118,65 @@ resolve();
 /*Start deploying proxy in EDGE*/
 opts.api = data[i].Name;
 console.log('Deploying ' + data[i].Name +' ....');
-sdk.deployProxy(opts)
+deployProxy.deploy(opts).then((err)=> {
+    console.log(err);
+    console.log('Deployed ' + data[i].Name);
+    uploader(i+1);
+})
+/*sdk.deployProxy(opts)
 .then(function(result){
                     //deploy success
 /*Delete the files created as the next proxy will require new file*/
-fs.unlinkSync('./apiproxy/'+data[i].Name+'.xml');
-fs.unlinkSync('./apiproxy/proxies/default.xml');
-fs.unlinkSync('./apiproxy/targets/default.xml');
-fsExtra.emptyDir('./apiproxy/policies').then(() => {
-    uploader(i+1);
-    console.log('Deployed ' + data[i].Name);
-})
-.catch(err => {
-    console.log(err);
-  })
- },function(err){
-                    //deploy failed
-console.log(err);
- });
+//fs.unlinkSync('./apiproxy/'+data[i].Name+'.xml');
+//fs.unlinkSync('./apiproxy/proxies/default.xml');
+//s.unlinkSync('./apiproxy/targets/default.xml');
+//fsExtra.emptyDir('./apiproxy/policies').then(() => {
+  //  uploader(i+1);
+  //  console.log('Deployed ' + data[i].Name);
+//})
+//.catch(err => {
+//    console.log(err);
+ // })
+ //})
 
 
 })
 });
 });
-});
+
   }
-
   console.log('All proxies deployed');
-  console.log('************Creating products***************');
-  var arrayofProducts = Array.from(productSet);
-  console.log(proxyCollection);
-  createProducts(0);
+  console.log('Creating a product');
+//console.log(set.size);
 
-  /*run a recursive function to create products and developer apps*/
-
-  function createProducts(i) {
-
-
-  if(i < arrayofProducts.length) {
   return new Promise((resolve,reject) => {
     delete opts["api"];
-    opts["productName"] = arrayofProducts[i]
-    opts["productDesc"] = arrayofProducts[i]
-    opts["proxies"] = proxyCollection[i+1];
+    opts["productName"] = 'proxyPOC'
+    opts["productDesc"] = 'Product for proxy POC'
+    opts["proxies"] = stringOfProxies;
    console.log(JSON.stringify(opts));
    sdk.createProduct(opts)
       .then(function(result){
         //product created
-        console.log('****************Product created ' + arrayofProducts[i]+ ' ************');
+        console.log('Product created');
         resolve();
       },function(err){
         //product creation failed
         console.log(err);
       }) ; 
   }).then(()=> {
-     console.log('****************Creating developer app****************');
-    opts.name = 'Developer app for ' + arrayofProducts[i]
-    opts.apiProducts = arrayofProducts[i]
-    opts.email = 'raunak.narooka@lntinfotech.com'
+     console.log('Creating developer app');
+    opts.name = appName
+    opts.apiProducts = opts.productName
+    opts.email = 'pujakhetan5@gmail.com'
   console.log(JSON.stringify(opts));
     sdk.createApp(opts)
     .then(function(result){
-      console.log('***************Developer app created for  ' + arrayofProducts[i] + ' ***********' );
-      createProducts(i+1);
+      console.log('Developer app created');
     },function(err){
         console.log(err);
     }) ;
   })
-}
-}
-}
+  
     
-
+}

@@ -17,7 +17,8 @@
 "promise":"*",
 "pretty-data":"*",
 "xml2js":"*",
-"xlsx-writestream":"*"
+"xlsx-writestream":"*",
+"extract-zip":"*"
 
 
 
