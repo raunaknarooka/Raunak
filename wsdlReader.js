@@ -41,10 +41,8 @@ rl.question('What is the folder path of the wsdl files? ', (answer) => {
             ,'Name': files.split('.')[0] , 'Alias': '/api/v1/'+ files.split('.')[0], 'Description' : files.split('.')[0] + ' proxy'};
             console.log(excelData);
             
-             excelWriter.write('./test.xlsx',excelData, function(options, err) {
-                console.log(err);
-             });
-            //console.log(a);
+            
+            
            
                
             });
