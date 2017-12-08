@@ -13,7 +13,7 @@ var deployProxy = require('./deploy.js');
 var create = require('./createFilesforNewProxies');
 var trafficPolicies=require('./policiesForTrafficManagement');
 /*Read the excel sheet*/
-var workbook = XLSX.readFile('test.xlsx');
+var workbook = XLSX.readFile('Traffic.xlsx');
 var first_sheet_name = workbook.SheetNames[0];
 
 /* Get worksheet */

@@ -13,7 +13,7 @@ var deployProxy = require('./deploy.js');
 var create = require('./createFilesforNewProxies');
 var securityPolicies=require('./policiesForSecurityManagement');
 /*Read the excel sheet*/
-var workbook = XLSX.readFile('test.xlsx');
+var workbook = XLSX.readFile('Security.xlsx');
 var first_sheet_name = workbook.SheetNames[0];
 
 /* Get worksheet */
@@ -68,9 +68,9 @@ function uploader(i) {
           opts['revision'] = result.deployments[0].revision;
           sdk.fetchProxy(opts).then((result) => {
               
-            extract('./'+ data[i].Name +'.zip', {dir: 'C:/proxyProject/Raunak/'+data[i].Name}, function (err) {
+            extract('./'+ data[i].Name +'.zip', {dir: '/home/oem/Documents/Raunak/'+data[i].Name}, function (err) {
                 // extraction is complete. make sure to handle the err
-               fsExtra.copySync('C:/proxyProject/Raunak/'+data[i].Name+'/apiproxy','./apiproxy');
+               fsExtra.copySync('/home/oem/Documents/Raunak/'+data[i].Name+'/apiproxy','./apiproxy');
                 delete opts['revision'];
                 delete opts['api'];
                 securityPolicies.applySecurityPolicies(data[i]).then(()=> {
