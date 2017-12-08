@@ -10,6 +10,8 @@ var properties = require('./properties.js');
 var apiKeySecurity = require('./apikeySecurity.js');
 var quota = require('./quota.js');
 var deployProxy = require('./deploy.js');
+var create = require('./createFilesforNewProxies');
+var securityPolicies=require('./policiesForSecurityManagement');
 /*Read the excel sheet*/
 var workbook = XLSX.readFile('test.xlsx');
 var first_sheet_name = workbook.SheetNames[0];
@@ -56,11 +58,13 @@ if (!fs.existsSync(policy)){
  
 /*run a recursive function for each target url*/
 function uploader(i) {
-  /*Create required proxy files*/
+    if(i < data.length) {
+ 
   opts['api'] = data[i].Name;
+ 
   sdk.listDeployments(opts).then((result)=> {
       console.log(result);
-      if(result.deployments[0].revision >1) {
+      if(result.deployments[0].revision >= 1) {
           opts['revision'] = result.deployments[0].revision;
           sdk.fetchProxy(opts).then((result) => {
               
@@ -69,83 +73,57 @@ function uploader(i) {
                fsExtra.copySync('C:/proxyProject/Raunak/'+data[i].Name+'/apiproxy','./apiproxy');
                 delete opts['revision'];
                 delete opts['api'];
+                securityPolicies.applySecurityPolicies(data[i]).then(()=> {
+                    /*Start deploying proxy in EDGE*/
+                    opts.api = data[i].Name;
+                    console.log('Deploying ' + data[i].Name +' ....');
+                    deployProxy.deploy(opts).then((err)=> {
+                      
+                        console.log('Deployed ' + data[i].Name);
+                        uploader(i+1);
+                    })
+                })
                })
           
           })
-      }
-  })
-  if(i < data.length) {
-     requestXml = '<Request></Request>';
+      }  
+      
+  }).catch((err) => { /*If there are no proxies deployed, it will start creating new proxies*/
     
-     insertOptions = '';
-      if(data.length === 1) {
+    
+    if(String(err).indexOf('HTTP error 404') !== -1) { /*If error comes 404, that means proxy is not deployed*/
+    create.createFiles(data[i])
+    .then(()=> {
+      securityPolicies.applySecurityPolicies(data[i]).then(()=> {
+          /*Start deploying proxy in EDGE*/
+          opts.api = data[i].Name;
+          console.log('Deploying ' + data[i].Name +' ....');
+          deployProxy.deploy(opts).then((err)=> {
+            
+              console.log('Deployed ' + data[i].Name);
+              uploader(i+1);
+          })
+      })
+
+    })
+} else { /*Else print the error*/
+    console.log(err);
+}
+
+  })
+ 
+     
+      /*if(data.length === 1) {
        stringOfProxies= data[i].Name
       } else {
           stringOfProxies = stringOfProxies + ',' + data[i].Name;
-      }
+      }*/
+      
       
 
-      
-return new Promise((resolve, reject) => {
 
-    fs.writeFileSync('./apiproxy/'+data[i].Name+'.xml',pd.xml('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><APIProxy name="'+data[i].Name+'"> <Description>'+data[i].Description+'</Description></APIProxy>'));
-resolve();
-}).then(() => {
-
-return new Promise((resolve, reject) => {
-    if (data[i].APIKeySecurity === 'yes') {
-        insertOptions =  '<Step><Name>Verify-API-Key-1</Name></Step>';
-        fs.writeFileSync('./apiproxy/policies/Verify-API-Key-1.xml', pd.xml(apiKeySecurity.data));
-        
-        
-    }
-    if (data[i].TrafficManagement === 'yes') {
-        insertOptions = insertOptions + '<Step><Name>Quota-1</Name></Step>';
-        fs.writeFileSync('./apiproxy/policies/Quota-1.xml', pd.xml(quota.data));
-       
-    }
-    requestXml = requestXml.slice(0,9) + insertOptions + requestXml.slice(9);
-    console.log(requestXml);
-    fs.writeFileSync('./apiproxy/proxies/default.xml',pd.xml('<?xml version="1.0" encoding="UTF-8" standalone="yes"?> <ProxyEndpoint name="default"><Description/><FaultRules/><PreFlow name="PreFlow">'+ requestXml + '<Response/></PreFlow><PostFlow name="PostFlow"><Request/><Response/></PostFlow><Flows/><HTTPProxyConnection><BasePath>'+data[i].Alias+'</BasePath><Properties/><VirtualHost>default</VirtualHost><VirtualHost>secure</VirtualHost></HTTPProxyConnection><RouteRule name="default"><TargetEndpoint>default</TargetEndpoint></RouteRule></ProxyEndpoint>'));
-resolve();
-}).then(() => {
-
-return new Promise((resolve,reject) => {
-fs.writeFileSync('./apiproxy/targets/default.xml',pd.xml('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><TargetEndpoint name="default"><Description/><FaultRules/><PreFlow name="PreFlow"><Request/><Response/></PreFlow><PostFlow name="PostFlow"><Request/><Response/></PostFlow><Flows/><HTTPTargetConnection><Properties/><URL>'+data[i].Url+'</URL></HTTPTargetConnection></TargetEndpoint>'));
-resolve();
-}).then(() => {
-
-/*Start deploying proxy in EDGE*/
-opts.api = data[i].Name;
-console.log('Deploying ' + data[i].Name +' ....');
-deployProxy.deploy(opts).then((err)=> {
-    console.log(err);
-    console.log('Deployed ' + data[i].Name);
-    uploader(i+1);
-})
-/*sdk.deployProxy(opts)
-.then(function(result){
-                    //deploy success
-/*Delete the files created as the next proxy will require new file*/
-//fs.unlinkSync('./apiproxy/'+data[i].Name+'.xml');
-//fs.unlinkSync('./apiproxy/proxies/default.xml');
-//s.unlinkSync('./apiproxy/targets/default.xml');
-//fsExtra.emptyDir('./apiproxy/policies').then(() => {
-  //  uploader(i+1);
-  //  console.log('Deployed ' + data[i].Name);
-//})
-//.catch(err => {
-//    console.log(err);
- // })
- //})
-
-
-})
-});
-});
-
-  }
-  console.log('All proxies deployed');
+  } else {
+  /*console.log('All proxies deployed');
   console.log('Creating a product');
 //console.log(set.size);
 
@@ -176,7 +154,8 @@ deployProxy.deploy(opts).then((err)=> {
     },function(err){
         console.log(err);
     }) ;
-  })
+  })*/
+}
   
     
 }
