@@ -1,0 +1,1 @@
+module.exports = {data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?> <SpikeArrest async="false" continueOnError="false" enabled="true" name="Spike-Arrest-1"> <DisplayName>Spike Arrest-1</DisplayName>     <Properties/>  <Rate>30ps</Rate> </SpikeArrest>'};
