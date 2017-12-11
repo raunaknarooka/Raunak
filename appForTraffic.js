@@ -12,6 +12,7 @@ var quota = require('./quota.js');
 var deployProxy = require('./deploy.js');
 var create = require('./createFilesforNewProxies');
 var trafficPolicies=require('./policiesForTrafficManagement');
+var logging =require('./applyLoggingPolicy.js');
 /*Read the excel sheet*/
 var workbook = XLSX.readFile('Traffic.xlsx');
 var first_sheet_name = workbook.SheetNames[0];
@@ -79,11 +80,13 @@ function uploader(i) {
                     /*Start deploying proxy in EDGE*/
                     opts.api = data[i].Name;
                     console.log('Deploying ' + data[i].Name +' ....');
+                    logging.applyLoggingPolicy(data[i]).then(()=> {
                     deployProxy.deploy(opts).then((err)=> {
                       
                         console.log('Deployed ' + data[i].Name);
                         uploader(i+1);
                     })
+                })
                 })
                })
           
@@ -100,11 +103,13 @@ function uploader(i) {
           /*Start deploying proxy in EDGE*/
           opts.api = data[i].Name;
           console.log('Deploying ' + data[i].Name +' ....');
+          logging.applyLoggingPolicy(data[i]).then(()=> {
           deployProxy.deploy(opts).then((err)=> {
             
               console.log('Deployed ' + data[i].Name);
               uploader(i+1);
           })
+        })
       })
 
     })

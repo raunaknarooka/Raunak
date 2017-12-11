@@ -5,7 +5,7 @@ var sdk = apigeetool.getPromiseSDK()
 var pd = require('pretty-data').pd;
 var fsExtra=require('fs-extra');
 var extract = require('extract-zip');
-var Js2Xml = require("js2xml").Js2Xml;
+//var Js2Xml = require("js2xml").Js2Xml;
 
 var properties = require('./properties.js');
 var apiKeySecurity = require('./apikeySecurity.js');
@@ -13,6 +13,7 @@ var quota = require('./quota.js');
 var deployProxy = require('./deploy.js');
 var create = require('./createFilesforNewProxies');
 var securityPolicies=require('./policiesForSecurityManagement');
+var logging =require('./applyLoggingPolicy.js');
 /*Read the excel sheet*/
 var workbook = XLSX.readFile('Security.xlsx');
 var first_sheet_name = workbook.SheetNames[0];
@@ -69,19 +70,25 @@ function uploader(i) {
           opts['revision'] = result.deployments[0].revision;
           sdk.fetchProxy(opts).then((result) => {
               
-            extract('./'+ data[i].Name +'.zip', {dir: 'C:/proxyProject/Raunak/'+data[i].Name}, function (err) {
+            extract('./'+ data[i].Name +'.zip', {dir: '/home/oem/Documents/Raunak'+data[i].Name}, function (err) {
                 // extraction is complete. make sure to handle the err
-               fsExtra.copySync('C:/proxyProject/Raunak/'+data[i].Name+'/apiproxy','./apiproxy');
+               fsExtra.copySync('/home/oem/Documents/Raunak'+data[i].Name+'/apiproxy','./apiproxy');
                 delete opts['revision'];
                 delete opts['api'];
                 securityPolicies.applySecurityPolicies(data[i]).then(()=> {
                     /*Start deploying proxy in EDGE*/
                     opts.api = data[i].Name;
                     console.log('Deploying ' + data[i].Name +' ....');
-                    deployProxy.deploy(opts).then((err)=> {
-                      
-                        console.log('Deployed ' + data[i].Name);
-                        uploader(i+1);
+                    logging.applyLoggingPolicy(data[i]).then(()=> {
+                        deployProxy.deploy(opts).then((err)=> {
+                            
+                                console.log('Deployed ' + data[i].Name);
+                                uploader(i+1);
+
+                    })
+                    
+                       
+                       
                     })
                 })
                })
@@ -99,10 +106,12 @@ function uploader(i) {
           /*Start deploying proxy in EDGE*/
           opts.api = data[i].Name;
           console.log('Deploying ' + data[i].Name +' ....');
+          logging.applyLoggingPolicy(data[i]).then(() => {
           deployProxy.deploy(opts).then((err)=> {
             
-              console.log('Deployed ' + data[i].Name);
-              uploader(i+1);
+                console.log('Deployed ' + data[i].Name);
+                uploader(i+1);
+            })
           })
       })
 
@@ -124,6 +133,7 @@ function uploader(i) {
 
 
   } else {
+      
   /*console.log('All proxies deployed');
   console.log('Creating a product');
 //console.log(set.size);
