@@ -4,6 +4,7 @@ var apiKeySecurity = require('./apikeySecurity.js');
 var xpath = require('xpath')
 , dom = require('xmldom').DOMParser;
 var jsonThreat=require('./JsonThreat.js');
+var accessTokenOAuth = require('./verifyAccessTokenForOauth.js')
 module.exports = {
 
     applySecurityPolicies: function(data) {
@@ -29,9 +30,16 @@ module.exports = {
                 insertOptions =  insertOptions + '<Step><Name>Verify-API-Key-1</Name></Step>';
                 fs.writeFileSync('./apiproxy/policies/Verify-API-Key-1.xml', pd.xml(apiKeySecurity.data));
                 }
-                
-                
             } 
+
+            if (data.OAuthSecurity === 'yes') {
+                if(requestXml.indexOf('<Name>OAuth-v20-1</Name>') === -1) {
+                insertOptions =  insertOptions + '<Step><Name>OAuth-v20-1</Name></Step>';
+                fs.writeFileSync('./apiproxy/policies/OAuth-v20-1.xml', pd.xml(accessTokenOAuth.data));
+                }
+            }
+
+
             if (requestXml.indexOf("<Request/>") !== -1) {
             requestXml = '<Request>' + insertOptions + '</Request>';
             } else {
