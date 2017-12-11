@@ -4,7 +4,8 @@ var apigeetool = require('apigeetool')
 var sdk = apigeetool.getPromiseSDK()
 var pd = require('pretty-data').pd;
 var fsExtra=require('fs-extra');
-var extract = require('extract-zip')
+var extract = require('extract-zip');
+var Js2Xml = require("js2xml").Js2Xml;
 
 var properties = require('./properties.js');
 var apiKeySecurity = require('./apikeySecurity.js');
@@ -68,9 +69,9 @@ function uploader(i) {
           opts['revision'] = result.deployments[0].revision;
           sdk.fetchProxy(opts).then((result) => {
               
-            extract('./'+ data[i].Name +'.zip', {dir: '/home/oem/Documents/Raunak/'+data[i].Name}, function (err) {
+            extract('./'+ data[i].Name +'.zip', {dir: 'C:/proxyProject/Raunak/'+data[i].Name}, function (err) {
                 // extraction is complete. make sure to handle the err
-               fsExtra.copySync('/home/oem/Documents/Raunak/'+data[i].Name+'/apiproxy','./apiproxy');
+               fsExtra.copySync('C:/proxyProject/Raunak/'+data[i].Name+'/apiproxy','./apiproxy');
                 delete opts['revision'];
                 delete opts['api'];
                 securityPolicies.applySecurityPolicies(data[i]).then(()=> {

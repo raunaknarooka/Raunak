@@ -53,7 +53,9 @@ if (!fs.existsSync(policy)){
     var stringOfProxies = "";
     var requestXml = '';
     var insertOptions = '';
-   
+    var requestXmlForResponse = '';
+    var insertOptionsForResponse = '';
+
     uploader(0);
  
 /*run a recursive function for each target url*/
@@ -68,9 +70,9 @@ function uploader(i) {
           opts['revision'] = result.deployments[0].revision;
           sdk.fetchProxy(opts).then((result) => {
               
-            extract('./'+ data[i].Name +'.zip', {dir: '/home/oem/Documents/Raunak/'+data[i].Name}, function (err) {
+            extract('./'+ data[i].Name +'.zip', {dir: 'C:/proxyProject/Raunak/' +data[i].Name}, function (err) {
                 // extraction is complete. make sure to handle the err
-               fsExtra.copySync('/home/oem/Documents/Raunak/'+data[i].Name+'/apiproxy','./apiproxy');
+               fsExtra.copySync('C:/proxyProject/Raunak/' +data[i].Name+'/apiproxy','./apiproxy');
                 delete opts['revision'];
                 delete opts['api'];
                 trafficPolicies.applyTrafficPolicies(data[i]).then(()=> {

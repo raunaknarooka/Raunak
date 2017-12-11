@@ -4,6 +4,7 @@ module.exports = {
 
     createFiles: function(data) {
         requestXml = '<Request></Request>';
+        requestXmlForResponse = '<Response></Response>';
         return new Promise((resolve, reject) => {
             
               fs.writeFileSync('./apiproxy/'+data.Name+'.xml',pd.xml('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><APIProxy name="'+data.Name+'"> <Description>'+data.Description+'</Description></APIProxy>'));
@@ -16,7 +17,7 @@ module.exports = {
             }).then(() => {
             
             return new Promise((resolve,reject) => {
-            fs.writeFileSync('./apiproxy/targets/default.xml',pd.xml('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><TargetEndpoint name="default"><Description/><FaultRules/><PreFlow name="PreFlow"><Request/><Response/></PreFlow><PostFlow name="PostFlow"><Request/><Response/></PostFlow><Flows/><HTTPTargetConnection><Properties/><URL>'+data.Url+'</URL></HTTPTargetConnection></TargetEndpoint>'));
+            fs.writeFileSync('./apiproxy/targets/default.xml',pd.xml('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><TargetEndpoint name="default"><Description/><FaultRules/><PreFlow name="PreFlow"><Request/><Response/></PreFlow><PostFlow name="PostFlow"><Request/>'+ requestXmlForResponse + '</PostFlow><Flows/><HTTPTargetConnection><Properties/><URL>'+data.Url+'</URL></HTTPTargetConnection></TargetEndpoint>'));
             resolve();
             })
         })
