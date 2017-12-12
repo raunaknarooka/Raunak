@@ -2,6 +2,10 @@ var parseString = require('xml2js').parseString;
 var fs=require('fs');
 XLSX = require('xlsx');
 var excelWriter = require('xlsx-writestream');
+var create = require('./createFilesforNewProxies');
+var logging =require('./applyLoggingPolicy.js');
+var deployProxy = require('./deploy.js');
+var properties = require('./properties.js');
 
 
 const readline = require('readline');
@@ -13,21 +17,46 @@ const rl = readline.createInterface({
 
 
 var excelData = {};
-var opts= { out: 'test.xlsx'};
+//var opts= { out: 'test.xlsx'};
 
 /*Read the excel file*/
-var workbook = XLSX.readFile('test.xlsx');
-var first_sheet_name = workbook.SheetNames[0];
+//var workbook = XLSX.readFile('test.xlsx');
+//var first_sheet_name = workbook.SheetNames[0];
 
 /* Get worksheet */
-var worksheet = workbook.Sheets[first_sheet_name];
+//var worksheet = workbook.Sheets[first_sheet_name];
+var opts = {
+    organization: properties.organization,
+    username: properties.username,
+    password: properties.password,
+    environments: properties.environments,
+    
+}
+/*Create skeleton apiproxy folder structure*/ 
+var apiproxy='./apiproxy';
+if (!fs.existsSync(apiproxy)){
+fs.mkdirSync(apiproxy);
+}
 
-
+var dir1 ='./apiproxy/proxies';
+var dir2= './apiproxy/targets';
+var policy = './apiproxy/policies';
+if (!fs.existsSync(dir1)){
+fs.mkdirSync(dir1);
+}
+if (!fs.existsSync(dir2)){
+fs.mkdirSync(dir2);
+}
+if (!fs.existsSync(policy)){
+    fs.mkdirSync(policy);
+  
+}
 rl.question('What is the folder path of the wsdl files? ', (answer) => {
 
   console.log('Entered Path is ' + answer);
 
   rl.close();
+ 
   fs.readdir(answer, (err, files) => {
       
       files.forEach((files)=> {
@@ -39,12 +68,18 @@ rl.question('What is the folder path of the wsdl files? ', (answer) => {
          
             excelData= {'Url': result['wsdl:definitions']['wsdl:service'][0]['wsdl:port'][0]['soap:address'][0]['$']['location']
             ,'Name': files.split('.')[0] , 'Alias': '/api/v1/'+ files.split('.')[0], 'Description' : files.split('.')[0] + ' proxy'};
-            console.log(excelData);
-            
-            
-            
-           
-               
+           //creating and deploying proxy
+            var newData = excelData;
+            opts['api'] = newData.Name;
+             create.createFiles(newData)
+            .then(()=> {
+                logging.applyLoggingPolicy(data).then(()=> {
+                deployProxy.deploy(opts).then(()=> {
+                })        
+                })                     
+            })
+          
+                
             });
         })
 
