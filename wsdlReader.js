@@ -60,12 +60,10 @@ rl.question('What is the folder path of the wsdl files? ', (answer) => {
   fs.readdir(answer, (err, files) => {
       
     
-     // files.forEach((files)=> {
-      //    console.log('***' + files);
+     
       uploader(answer,files,0);
           
-      //})
-    
+        
 
   }) /*fs.readdir closes here*/
   
@@ -77,9 +75,7 @@ function uploader(answer,files,i)
    if(i<files.length) {
     fs.readFile(answer +'/' +files[i], function (err, data) {
     parseString(data, function (err, result) {
-        /*excelData.push({'Url': result['wsdl:definitions']['wsdl:service'][0]['wsdl:port'][0]['soap:address'][0]['$']['location']
-    ,'Name': files.split('.')[0] , 'Alias': '/api/v1/'+ files.split('.')[0], 'Description' : files.split('.')[0] + ' proxy'});*/
-
+        
 
  
     excelData= {'Url': result['wsdl:definitions']['wsdl:service'][0]['wsdl:port'][0]['soap:address'][0]['$']['location']
