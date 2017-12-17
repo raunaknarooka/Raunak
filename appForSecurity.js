@@ -14,8 +14,10 @@ var deployProxy = require('./deploy.js');
 var create = require('./createFilesforNewProxies');
 var securityPolicies=require('./policiesForSecurityManagement');
 var logging =require('./applyLoggingPolicy.js');
+var productAndDevApp = require('./createProductAndDevApp');
 /*Read the excel sheet*/
 var workbook = XLSX.readFile('Security.xlsx');
+ 
 var first_sheet_name = workbook.SheetNames[0];
 
 /* Get worksheet */
